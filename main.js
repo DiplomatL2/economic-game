@@ -1,7 +1,12 @@
 // ---- НАСТРОЙКИ — перечень биомов и их ресурсы ----
 
-// Возможные виды ресурсов для добычи в каждом биоме
+// ВНИМАНИЕ: Дорога должна быть всегда по индексу 0!
 const BIOMES = [
+  {
+    name: "Дорога",
+    emoji: "🛣️",
+    resources: []
+  },
   {
     name: "Лес",
     emoji: "🌲",
@@ -21,36 +26,25 @@ const BIOMES = [
     name: "Песчаный пляж",
     emoji: "🏖️",
     resources: ["песок", "земля"]
-  },
-  {
-    name: "Дорога",
-    emoji: "🛣️",
-    resources: [] // На дороге ресурсов нет
-  },
+  }
 ];
 
-// Размеры карты
 const MAP_SIZE = 10;
 
 // ---- СОЗДАНИЕ КАРТЫ (массив объектов клеток) ----
-
 let map = [];
 for (let y = 0; y < MAP_SIZE; y++) {
   let row = [];
   for (let x = 0; x < MAP_SIZE; x++) {
     let biomeIndex;
-    // Пример "змейки": дорожка идет вправо в чётных строках, влево в нечётных
-    if (y % 2 === 0) {
-      // Чётная строка — все x от 0 до MAP_SIZE: дорожка вертикально в первом столбце
-      if (x === 0) biomeIndex = 0;
-      else biomeIndex = Math.floor(Math.random() * (BIOMES.length - 1)) + 1; // кроме дороги
+    // Дорога "змейкой": слева в чётных, справа в нечётных строках
+    if ((y % 2 === 0 && x === 0) || (y % 2 === 1 && x === MAP_SIZE - 1)) {
+      biomeIndex = 0;
     } else {
-      // Нечётная строка — дорожка вертикально в последнем столбце
-      if (x === MAP_SIZE - 1) biomeIndex = 0;
-      else biomeIndex = Math.floor(Math.random() * (BIOMES.length - 1)) + 1;
+      // случайный НЕ-дорога (биомы с индексом >=1)
+      biomeIndex = Math.floor(Math.random() * (BIOMES.length - 1)) + 1;
     }
 
-    // Обычные ресурсы — только не дорога
     let resource = "";
     let amount = 0;
     if (biomeIndex !== 0) {
@@ -58,7 +52,6 @@ for (let y = 0; y < MAP_SIZE; y++) {
       resource = biome.resources[Math.floor(Math.random() * biome.resources.length)];
       amount = Math.floor(Math.random() * 4) + 2;
     }
-
     row.push({
       x, y,
       biomeIndex,
@@ -72,30 +65,37 @@ for (let y = 0; y < MAP_SIZE; y++) {
 }
 
 // ---- ИНВЕНТАРЬ (рюкзак, максимум 10 видов вещей) ----
-
 let inventory = {}; // структура: { имя_ресурса: количество }
 
 // ---- ОТРИСОВКА КАРТЫ ----
-
 function renderMap() {
   const mapDiv = document.getElementById('map');
   mapDiv.innerHTML = ''; // очистить перед отрисовкой
 
-  // Создаём сетку как HTML-таблицу для удобства
+  // Создаем HTML-таблицу
   const table = document.createElement('table');
   for (let y = 0; y < MAP_SIZE; y++) {
     const tr = document.createElement('tr');
     for (let x = 0; x < MAP_SIZE; x++) {
       const cell = map[y][x];
       const td = document.createElement('td');
-      td.className = 'cell';
-      td.title = `${BIOMES[cell.biomeIndex].name}\nРесурс: ${cell.resource}\nОстаток: ${cell.amount}`;
-      td.innerHTML = BIOMES[cell.biomeIndex].emoji + "<br>" + (cell.isDepleted ? "Нет" : cell.resource);
-      td.style.opacity = cell.isDepleted ? 0.3 : 1;
-      td.style.cursor = cell.isDepleted ? "not-allowed" : "pointer";
 
-      // клик по клетке – попытка собрать ресурс
-      td.onclick = () => tryCollect(cell);
+      // Ячейка дороги
+      if (cell.biomeIndex === 0) {
+        td.className = 'cell road';
+        td.innerHTML = BIOMES[0].emoji + "<br>" + "<small>Дорога</small>";
+        td.style.background = "#a0522d";
+        td.style.color = "#fff";
+        td.style.cursor = "default";
+        td.onclick = null; // Не кликабельна
+      } else {
+        td.className = 'cell';
+        td.title = `${BIOMES[cell.biomeIndex].name}\nРесурс: ${cell.resource}\nОстаток: ${cell.amount}`;
+        td.innerHTML = BIOMES[cell.biomeIndex].emoji + "<br>" + (cell.isDepleted ? "Нет" : cell.resource);
+        td.style.opacity = cell.isDepleted ? 0.3 : 1;
+        td.style.cursor = cell.isDepleted ? "not-allowed" : "pointer";
+        td.onclick = () => tryCollect(cell);
+      }
 
       tr.appendChild(td);
     }
@@ -105,52 +105,45 @@ function renderMap() {
 }
 
 // ---- ФУНКЦИЯ: ПОПЫТКА СОБРАТЬ РЕСУРС ----
-
 function tryCollect(cell) {
   if (cell.isDepleted || cell.amount === 0) {
     alert("Здесь сейчас нет ресурсов!");
     return;
   }
-  // Проверяем лимит: максимум 10 разных видов в рюкзаке
   let uniqueItems = Object.keys(inventory).length;
   let hasResource = cell.resource in inventory;
   if (!hasResource && uniqueItems >= 10) {
     alert("Рюкзак забит по видам! Освободи место.");
     return;
   }
-  // Собираем 1 штуку ресурса
   inventory[cell.resource] = (inventory[cell.resource] || 0) + 1;
   cell.amount -= 1;
-  // Если ресурс закончился, ставим флаг иссякания и запускаем восстановление
   if (cell.amount === 0) {
     cell.isDepleted = true;
     setTimeout(() => {
-      cell.amount = Math.floor(Math.random() * 4) + 2; // Новый запас (2-5)
+      cell.amount = Math.floor(Math.random() * 4) + 2;
       cell.isDepleted = false;
       renderMap();
     }, cell.regenTime * 1000);
   }
   renderMap();
   renderInventory();
-  saveGame(); 
+  saveGame();
 }
 
 // ---- ОТРИСОВКА ИНВЕНТАРЯ ----
-
 function renderInventory() {
   const invDiv = document.getElementById('inventory');
   if (Object.keys(inventory).length === 0) {
     invDiv.textContent = "Пусто";
     return;
   }
-  // Выводим список ресурсов и их количества
   invDiv.innerHTML = Object.entries(inventory).map(
     ([name, count]) => `<b>${name}</b>: ${count}`
   ).join("<br>");
 }
 
 // ----- Сохранение и загрузка -----
-
 function saveGame() {
   localStorage.setItem('sg_map', JSON.stringify(map));
   localStorage.setItem('sg_inventory', JSON.stringify(inventory));
@@ -164,24 +157,17 @@ function loadGame() {
       map = JSON.parse(savedMap);
       inventory = JSON.parse(savedInventory);
     } catch (e) {
-      // если вдруг что-то пойдет не так — очистим
       localStorage.removeItem('sg_map');
       localStorage.removeItem('sg_inventory');
     }
   }
 }
 
-
 // ---- ПЕРВАЯ ОТРИСОВКА ----
 loadGame();
 renderMap();
 renderInventory();
-//  Пояснения:
- // - Карта 5x5, на каждой клетке — биом и стартовый ресурс.
-//  - Клик по клетке пробует добыть 1 ресурс: если в рюкзаке 10 видов, больше нельзя.
- // - Если ресурс иссякает — клетка становится неактивной, через regenTime (30 сек) восстанавливается.
-//  - Инвентарь показывает только занятые ячейки.
-//  - Все действия снабжены максимально подробными комментариями для изучения.
+
 
 
 
