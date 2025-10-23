@@ -4,7 +4,7 @@
 const BIOMES = [
   {
     name: "Дорога",
-    emoji: "🛣️",
+    emoji: "",
     resources: []
   },
   {
@@ -167,6 +167,7 @@ function loadGame() {
 loadGame();
 renderMap();
 renderInventory();
+
 
 
 
