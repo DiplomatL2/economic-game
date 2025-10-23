@@ -28,3 +28,12 @@ td.cell:hover {
   min-height: 32px;
   width: 220px;
 }
+
+td.cell.road {
+  background: #a0522d !important;
+  color: #fff;
+  cursor: default;
+}
+td.cell.road:hover {
+  background: #a0522d !important;
+}
