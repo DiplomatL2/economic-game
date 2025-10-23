@@ -1,0 +1,30 @@
+body {
+  font-family: sans-serif;
+  background: #f6f6f6;
+  margin: 30px;
+}
+table {
+  border-collapse: collapse;
+}
+td.cell {
+  width: 75px;
+  height: 75px;
+  border: 1px solid #aaa;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 28px;
+  background: #fff;
+  transition: background 0.2s, opacity 0.4s;
+}
+td.cell:hover {
+  background: #e7f0ff;
+}
+#inventory {
+  margin-top: 12px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 0 8px #d7d7d7;
+  padding: 12px;
+  min-height: 32px;
+  width: 220px;
+}
