@@ -2,20 +2,21 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Экономическая игра — основа</title>
-  <style>
-    body { font-family: sans-serif; background: #f3f3f3; }
-    #market { margin: 2em auto; max-width: 400px; background: #fff; border-radius: 6px; box-shadow: 0 0 12px #ccc; padding: 1em; }
-    .good { margin: 1em 0; }
-    button { margin: 0 0.5em; }
-    #status { margin: 1em 0; color: #555; font-size: 0.95em; }
-  </style>
+  <title>Собирай-ка — добыча ресурсов</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Базовый рынок</h1>
-  <div id="status"></div>
-  <div id="market"></div>
-  <button onclick="resetGame()">Сбросить прогресс</button>
+  <h1>Собирай-ка</h1>
+  <p>
+    Кликни на клетку карты, чтобы собрать ресурсы в этой местности.
+    <br>
+    <small>Рюкзак: максимум 10 разных типов вещей.</small>
+  </p>
+  <!-- Сюда будет выводиться карта -->
+  <div id="map"></div>
+  <!-- Здесь будет отображаться инвентарь -->
+  <h2>Рюкзак</h2>
+  <div id="inventory"></div>
   <script src="main.js"></script>
 </body>
 </html>
