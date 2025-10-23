@@ -8,12 +8,14 @@
     #market { margin: 2em auto; max-width: 400px; background: #fff; border-radius: 6px; box-shadow: 0 0 12px #ccc; padding: 1em; }
     .good { margin: 1em 0; }
     button { margin: 0 0.5em; }
+    #status { margin: 1em 0; color: #555; font-size: 0.95em; }
   </style>
 </head>
 <body>
-  <h1>Базовый рынок rdf</h1>
+  <h1>Базовый рынок</h1>
+  <div id="status"></div>
   <div id="market"></div>
+  <button onclick="resetGame()">Сбросить прогресс</button>
   <script src="main.js"></script>
 </body>
-
 </html>
