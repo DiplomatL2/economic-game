@@ -5,7 +5,7 @@ const goods = [
 
 const alpha = 0.15;
 
-// Фоновый тик — каждые 5 минут
+// Фоновый тик — каждые 5 минут (для теста можно уменьшить!)
 setInterval(() => {
   // Эмулируем NPC покупки
   goods.forEach(good => {
@@ -19,8 +19,7 @@ setInterval(() => {
   goods.forEach((good, idx) => {
     let cross = goods[(idx + 1) % goods.length];
     let delta = good.sales - cross.sales;
-    good.price = good.basePrice * (1 - alpha * (good.sales / (good.basePrice)));
-    // если другой товар покупали чаще — цена вверх
+    good.price = good.basePrice * (1 - alpha * (good.sales / good.basePrice));
     if (delta < 0) good.price *= (1 + Math.abs(delta) * 0.1);
     good.price = Math.max(1, good.price);
   });
@@ -29,7 +28,7 @@ setInterval(() => {
   goods.forEach(g => g.sales = 0);
 }, 5 * 60 * 1000);
 
-// Для теста — первый тик сразу после запуска
+// Для тестов — сделать тик сразу при запуске (чтобы не ждать 5 минут)
 setTimeout(() => {
   postMessage(goods.map(({ price, supply }) => ({ price, supply })));
 }, 1200);
