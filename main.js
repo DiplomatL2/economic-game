@@ -22,10 +22,15 @@ const BIOMES = [
     emoji: "🏖️",
     resources: ["песок", "земля"]
   }
+  {
+    name: "Дорога",
+    emoji: "🛣️",
+    resources: [] // На дороге ресурсов нет
+  },
 ];
 
 // Размеры карты
-const MAP_SIZE = 5;
+const MAP_SIZE = 10;
 
 // ---- СОЗДАНИЕ КАРТЫ (массив объектов клеток) ----
 
@@ -33,19 +38,34 @@ let map = [];
 for (let y = 0; y < MAP_SIZE; y++) {
   let row = [];
   for (let x = 0; x < MAP_SIZE; x++) {
-    // Выбор случайного биома для простоты (можно в будущем задавать вручную)
-    const biomeIndex = Math.floor(Math.random() * BIOMES.length);
-    const biome = BIOMES[biomeIndex];
+    let biomeIndex;
+    // Пример "змейки": дорожка идет вправо в чётных строках, влево в нечётных
+    if (y % 2 === 0) {
+      // Чётная строка — все x от 0 до MAP_SIZE: дорожка вертикально в первом столбце
+      if (x === 0) biomeIndex = 0;
+      else biomeIndex = Math.floor(Math.random() * (BIOMES.length - 1)) + 1; // кроме дороги
+    } else {
+      // Нечётная строка — дорожка вертикально в последнем столбце
+      if (x === MAP_SIZE - 1) biomeIndex = 0;
+      else biomeIndex = Math.floor(Math.random() * (BIOMES.length - 1)) + 1;
+    }
 
-    // Случайно выбираем ресурс из доступных в биоме
-    const resource = biome.resources[Math.floor(Math.random() * biome.resources.length)];
+    // Обычные ресурсы — только не дорога
+    let resource = "";
+    let amount = 0;
+    if (biomeIndex !== 0) {
+      const biome = BIOMES[biomeIndex];
+      resource = biome.resources[Math.floor(Math.random() * biome.resources.length)];
+      amount = Math.floor(Math.random() * 4) + 2;
+    }
+
     row.push({
       x, y,
       biomeIndex,
       resource,
-      amount: Math.floor(Math.random() * 4) + 2, // Стартовое количество (от 2 до 5)
-      regenTime: 30, // Время восстановления (сек) после иссякания
-      isDepleted: false // Флаг: исчерпан ли ресурс?
+      amount,
+      regenTime: 30,
+      isDepleted: false
     });
   }
   map.push(row);
@@ -162,6 +182,7 @@ renderInventory();
  // - Если ресурс иссякает — клетка становится неактивной, через regenTime (30 сек) восстанавливается.
 //  - Инвентарь показывает только занятые ячейки.
 //  - Все действия снабжены максимально подробными комментариями для изучения.
+
 
 
 
