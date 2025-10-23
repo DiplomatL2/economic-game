@@ -37,11 +37,24 @@ for (let y = 0; y < MAP_SIZE; y++) {
   let row = [];
   for (let x = 0; x < MAP_SIZE; x++) {
     let biomeIndex;
-    // Дорога "змейкой": слева в чётных, справа в нечётных строках
-    if ((y % 2 === 0 && x === 0) || (y % 2 === 1 && x === MAP_SIZE - 1)) {
-      biomeIndex = 0;
+
+    // Главная логика "змейки"
+    let isRoad = false;
+    if (y % 2 === 0) {
+      // Чётная строка — дорога идёт слева направо по всей строке
+      if (x < MAP_SIZE) isRoad = (x === 0) || (y > 0 && row.length === 0 && map[y-1][x].biomeIndex === 0);
     } else {
-      // случайный НЕ-дорога (биомы с индексом >=1)
+      // Нечётная строка — дорога идёт справа налево по всей строке
+      if (x === MAP_SIZE-1 || (y > 0 && map[y-1][x].biomeIndex === 0 && x !== 0)) isRoad = true;
+    }
+
+    // Фиксированный вариант: "чистая змейка" — вся строка, чередуя направление
+    if ((y % 2 === 0 && x === 0)         // начало чётной строки
+      || (y % 2 === 1 && x === MAP_SIZE-1) // начало нечётной строки
+      || (y > 0 && ((y % 2 === 0 && row.length === 0 && map[y-1][x].biomeIndex === 0)
+        || (y % 2 === 1 && x !== 0 && map[y-1][x].biomeIndex === 0)))) {
+      biomeIndex = 0; // дорога
+    } else {
       biomeIndex = Math.floor(Math.random() * (BIOMES.length - 1)) + 1;
     }
 
@@ -167,6 +180,7 @@ function loadGame() {
 loadGame();
 renderMap();
 renderInventory();
+
 
 
 
