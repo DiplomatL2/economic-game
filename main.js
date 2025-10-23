@@ -1,10 +1,10 @@
 // ---- НАСТРОЙКИ — перечень биомов и их ресурсы ----
 
-// ВНИМАНИЕ: Дорога должна быть всегда по индексу 0!
+// ВНИМАНИЕ: Дорога всегда по индексу 0!
 const BIOMES = [
   {
     name: "Дорога",
-    emoji: "",
+    emoji: "🛣️",
     resources: []
   },
   {
@@ -30,43 +30,66 @@ const BIOMES = [
 ];
 
 const MAP_SIZE = 10;
+const ROAD_LENGTH = 30; // длина дорожки (можно регулировать)
 
-// ---- СОЗДАНИЕ КАРТЫ (массив объектов клеток) ----
+// ---- СОЗДАНИЕ КАРТЫ c одной случайной дорогой ----
 
 let map = [];
 for (let y = 0; y < MAP_SIZE; y++) {
   let row = [];
-  for (let x = 0; x < MAP_SIZE; x++) {
-    let biomeIndex;
-    // Заполняем дорогу целиком чётные строки слева направо, нечётные справа налево
-    if ((y % 2 === 0 && x >= 0) || (y % 2 === 1 && x >= 0)) {
-      // проверяем: это дорожная клетка?
-      if ((y % 2 === 0 && x === 0) // начало чётной строки
-        || (y % 2 === 1 && x === MAP_SIZE - 1) // начало нечётной строки
-        || (y > 0 && ((y % 2 === 0 && x > 0 && row[x - 1] && row[x - 1].biomeIndex === 0)
-        || (y % 2 === 1 && x < MAP_SIZE - 1 && row[x + 1] && row[x + 1].biomeIndex === 0)))) {
-        biomeIndex = 0; // клетка дороги
-      } else {
-        biomeIndex = Math.floor(Math.random() * (BIOMES.length - 1)) + 1;
-      }
-    }
-    let resource = "";
-    let amount = 0;
-    if (biomeIndex !== 0) {
-      const biome = BIOMES[biomeIndex];
-      resource = biome.resources[Math.floor(Math.random() * biome.resources.length)];
-      amount = Math.floor(Math.random() * 4) + 2;
-    }
-    row.push({
-      x, y,
-      biomeIndex,
-      resource,
-      amount,
-      regenTime: 30,
-      isDepleted: false
-    });
-  }
+  for (let x = 0; x < MAP_SIZE; x++) row.push(null);
   map.push(row);
+}
+
+// --- Генерация связной дороги случайной формы (random walk) ---
+let roadCoords = [];
+{
+  let cx = Math.floor(Math.random() * MAP_SIZE);
+  let cy = Math.floor(Math.random() * MAP_SIZE);
+  roadCoords.push([cx, cy]);
+  map[cy][cx] = { biomeIndex: 0 };
+  while (roadCoords.length < ROAD_LENGTH) {
+    let [x, y] = roadCoords[roadCoords.length - 1];
+    let candidates = [];
+    if (y > 0 && !map[y - 1][x]) candidates.push([x, y - 1]); // вверх
+    if (y < MAP_SIZE - 1 && !map[y + 1][x]) candidates.push([x, y + 1]); // вниз
+    if (x > 0 && !map[y][x - 1]) candidates.push([x - 1, y]); // влево
+    if (x < MAP_SIZE - 1 && !map[y][x + 1]) candidates.push([x + 1, y]); // вправо
+    if (candidates.length === 0) break; // некуда идти, закончить
+    let next = candidates[Math.floor(Math.random() * candidates.length)];
+    roadCoords.push(next);
+    map[next[1]][next[0]] = { biomeIndex: 0 };
+  }
+}
+
+// --- Заполнение остальных клеток ---
+for (let y = 0; y < MAP_SIZE; y++) {
+  for (let x = 0; x < MAP_SIZE; x++) {
+    if (!map[y][x]) {
+      let biomeIndex = Math.floor(Math.random() * (BIOMES.length - 1)) + 1;
+      const biome = BIOMES[biomeIndex];
+      let resource = biome.resources[Math.floor(Math.random() * biome.resources.length)];
+      let amount = Math.floor(Math.random() * 4) + 2;
+      map[y][x] = {
+        x, y,
+        biomeIndex,
+        resource,
+        amount,
+        regenTime: 30,
+        isDepleted: false
+      };
+    } else {
+      // дорога — заполним стандартные поля для совместимости
+      map[y][x] = {
+        x, y,
+        biomeIndex: 0,
+        resource: "",
+        amount: 0,
+        regenTime: 30,
+        isDepleted: false
+      };
+    }
+  }
 }
 
 // ---- ИНВЕНТАРЬ (рюкзак, максимум 10 видов вещей) ----
@@ -143,9 +166,9 @@ function renderInventory() {
     invDiv.textContent = "Пусто";
     return;
   }
-  invDiv.innerHTML = Object.entries(inventory).map(
-    ([name, count]) => `<b>${name}</b>: ${count}`
-  ).join("<br>");
+  invDiv.innerHTML = Object.entries(inventory)
+    .map(([name, count]) => `<b>${name}</b>: ${count}`)
+    .join("<br>");
 }
 
 // ----- Сохранение и загрузка -----
@@ -182,15 +205,3 @@ function resetGame() {
 loadGame();
 renderMap();
 renderInventory();
-
-
-
-
-
-
-
-
-
-
-
-
