@@ -112,6 +112,7 @@ function tryCollect(cell) {
   }
   renderMap();
   renderInventory();
+  saveGame(); 
 }
 
 // ---- ОТРИСОВКА ИНВЕНТАРЯ ----
@@ -128,8 +129,31 @@ function renderInventory() {
   ).join("<br>");
 }
 
-// ---- ПЕРВАЯ ОТРИСОВКА ----
+// ----- Сохранение и загрузка -----
 
+function saveGame() {
+  localStorage.setItem('sg_map', JSON.stringify(map));
+  localStorage.setItem('sg_inventory', JSON.stringify(inventory));
+}
+
+function loadGame() {
+  const savedMap = localStorage.getItem('sg_map');
+  const savedInventory = localStorage.getItem('sg_inventory');
+  if (savedMap && savedInventory) {
+    try {
+      map = JSON.parse(savedMap);
+      inventory = JSON.parse(savedInventory);
+    } catch (e) {
+      // если вдруг что-то пойдет не так — очистим
+      localStorage.removeItem('sg_map');
+      localStorage.removeItem('sg_inventory');
+    }
+  }
+}
+
+
+// ---- ПЕРВАЯ ОТРИСОВКА ----
+loadGame();
 renderMap();
 renderInventory();
 //  Пояснения:
@@ -138,5 +162,6 @@ renderInventory();
  // - Если ресурс иссякает — клетка становится неактивной, через regenTime (30 сек) восстанавливается.
 //  - Инвентарь показывает только занятые ячейки.
 //  - Все действия снабжены максимально подробными комментариями для изучения.
+
 
 
