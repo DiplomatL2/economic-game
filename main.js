@@ -176,10 +176,21 @@ function loadGame() {
   }
 }
 
+function resetGame() {
+  if (
+    confirm("Вы действительно хотите сбросить прогресс и начать заново?")
+  ) {
+    localStorage.removeItem('sg_map');
+    localStorage.removeItem('sg_inventory');
+    location.reload();
+  }
+}
+
 // ---- ПЕРВАЯ ОТРИСОВКА ----
 loadGame();
 renderMap();
 renderInventory();
+
 
 
 
